@@ -202,16 +202,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     
-    .error-msg {
-      background: rgba(255,61,87,0.1);
-      border: 1px solid var(--red);
-      color: var(--red);
-      padding: 12px;
-      border-radius: 6px;
-      margin: 16px 0;
-      font-size: 12px;
-    }
-    
     h2 {
       font-family: 'Bebas Neue';
       font-size: 24px;
@@ -230,12 +220,73 @@
       background: var(--green);
       color: #0d0f0f;
       border: none;
-      padding: 8px 16px;
+      padding: 10px 20px;
       border-radius: 6px;
       font-weight: 700;
-      font-size: 12px;
+      font-size: 13px;
     }
     .btn-primary:hover { opacity: 0.85; }
+    
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .form-input, .form-select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: 'DM Sans';
+      font-size: 13px;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 2px rgba(0,230,118,0.1);
+    }
+    .form-select {
+      cursor: pointer;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .form-row.three {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    
+    .unlock-form {
+      max-width: 300px;
+      margin: 0 auto;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    
+    .treasurer-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(0,230,118,0.1);
+      border: 1px solid var(--green);
+      color: var(--green);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -264,15 +315,9 @@
   <div class="container hidden" id="view-squad"></div>
 
   <script>
-    // ═══════════════════════════════════════════════════════════
-    // SUPABASE CONFIG
-    // ═══════════════════════════════════════════════════════════
     const SUPABASE_URL = 'https://srhcogzmdbosxkvogmnj.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyaGNvZ3ptZGJvc3hrdm9nbW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTA4MTYsImV4cCI6MjA5NTM4NjgxNn0.dLyVubiEg6xQDs_21ilkjObY1XigAychXls4qtdRE54';
     
-    // ═══════════════════════════════════════════════════════════
-    // STATE
-    // ═══════════════════════════════════════════════════════════
     let app = {
       currentPlayer: '',
       currentSeason: '2627',
@@ -287,9 +332,6 @@
     const TREASURER_PLAYER = 'Hayden';
     const TREASURER_PIN = '1234';
 
-    // ═══════════════════════════════════════════════════════════
-    // API HELPERS
-    // ═══════════════════════════════════════════════════════════
     async function apiCall(table, method = 'GET', filters = '', data = null) {
       const url = `${SUPABASE_URL}/rest/v1/${table}${filters}`;
       const opts = {
@@ -308,33 +350,20 @@
       return res.json();
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // LOAD DATA
-    // ═══════════════════════════════════════════════════════════
     async function loadAllData() {
       try {
-        // Players
         app.players = await apiCall('players', 'GET', '?select=*');
-        
-        // Seasons
         app.seasons = await apiCall('seasons', 'GET', '?select=*');
-        
-        // Load current season data
         await loadSeasonData(app.currentSeason);
-        
         renderApp();
       } catch (error) {
         const el = document.getElementById('view-loading');
-        el.innerHTML = `<div class="error-msg">Failed to load: ${error.message}</div>`;
-        console.error(error);
+        el.innerHTML = `<div style="color:var(--red);padding:20px;text-align:center">Failed to load: ${error.message}</div>`;
       }
     }
 
     async function loadSeasonData(seasonId) {
-      // Fixtures
       app.fixtures = await apiCall('fixtures', 'GET', `?season_id=eq.${seasonId}&order=id`);
-      
-      // Availability
       const avail = await apiCall('availability', 'GET', '?select=*');
       app.availability = {};
       avail.forEach(a => {
@@ -342,7 +371,6 @@
         app.availability[a.fixture_id][a.player_id] = a.status;
       });
       
-      // Results
       const singles = await apiCall('results_singles', 'GET', '?select=*');
       const doubles = await apiCall('results_doubles', 'GET', '?select=*');
       
@@ -355,9 +383,6 @@
       });
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // RENDER
-    // ═══════════════════════════════════════════════════════════
     function renderApp() {
       renderSeasonSwitcher();
       renderPlayerPicker();
@@ -420,12 +445,59 @@
 
     function renderFixtures() {
       const el = document.getElementById('view-fixtures');
+      let html = '<h2>Fixtures</h2>';
+      
+      if (app.treasurerUnlocked && app.currentSeason === '2627') {
+        html += `<div class="card">
+          <div class="card-title">➕ Add Fixture</div>
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input class="form-input" type="text" id="new-date" placeholder="Fri 5 Sep 2026">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Time</label>
+              <input class="form-input" type="text" id="new-time" placeholder="7:30pm">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Opponent</label>
+              <input class="form-input" type="text" id="new-opponent" placeholder="The Crown">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Venue</label>
+              <input class="form-input" type="text" id="new-venue" placeholder="Royal British Legion">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Home / Away</label>
+              <select class="form-select" id="new-home">
+                <option value="true">🏠 Home</option>
+                <option value="false">✈️ Away</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Competition</label>
+            <select class="form-select" id="new-comp">
+              <option>League</option>
+              <option>Cup R1</option>
+              <option>Cup R2</option>
+              <option>Plate P</option>
+              <option>Plate R1</option>
+              <option>Friendly</option>
+            </select>
+          </div>
+          <button class="btn-primary" style="width:100%" onclick="addFixture()">Add Fixture</button>
+        </div>`;
+      }
+      
       if (!app.fixtures.length) {
-        el.innerHTML = '<h2>Fixtures</h2><div class="notice">No fixtures for this season.</div>';
+        html += '<div class="notice">No fixtures for this season.</div>';
+        el.innerHTML = html;
         return;
       }
       
-      let html = '<h2>Fixtures</h2>';
       app.fixtures.forEach(f => {
         const avail = app.availability[f.id] || {};
         const yesCount = Object.values(avail).filter(s => s === 'yes').length;
@@ -433,7 +505,7 @@
           <div class="fixture-card">
             <div class="fixture-info">
               <div class="fixture-opponent">vs ${f.opponent}</div>
-              <div class="fixture-meta">${f.date} · ${f.time || '7:30pm'} · ${f.home ? '🏠 Home' : '✈️ Away'}</div>
+              <div class="fixture-meta">${f.date} · ${f.time || '7:30pm'} · ${f.venue || 'TBC'} · ${f.home ? '🏠 Home' : '✈️ Away'}</div>
             </div>
             <div class="fixture-availability">${yesCount} confirmed</div>
           </div>
@@ -442,11 +514,50 @@
       el.innerHTML = html;
     }
 
+    async function addFixture() {
+      const date = document.getElementById('new-date')?.value;
+      const time = document.getElementById('new-time')?.value;
+      const opponent = document.getElementById('new-opponent')?.value;
+      const venue = document.getElementById('new-venue')?.value;
+      const home = document.getElementById('new-home')?.value === 'true';
+      const comp = document.getElementById('new-comp')?.value;
+      
+      if (!date || !opponent || !venue) {
+        alert('Please fill in date, opponent, and venue');
+        return;
+      }
+      
+      try {
+        const newFixture = {
+          season_id: app.currentSeason,
+          opponent,
+          date,
+          time: time || '7:30pm',
+          home,
+          comp: comp || 'League',
+          venue,
+        };
+        
+        await apiCall('fixtures', 'POST', '', newFixture);
+        
+        document.getElementById('new-date').value = '';
+        document.getElementById('new-time').value = '';
+        document.getElementById('new-opponent').value = '';
+        document.getElementById('new-venue').value = '';
+        
+        await loadSeasonData(app.currentSeason);
+        renderFixtures();
+        alert('✓ Fixture added!');
+      } catch (error) {
+        alert('Error adding fixture: ' + error.message);
+      }
+    }
+
     function renderDashboard() {
       const el = document.getElementById('view-dashboard');
+      let html = '<h2>Dashboard</h2>';
       const played = app.fixtures.filter(f => app.results[f.id] && app.results[f.id].singles.length > 0);
       
-      let html = '<h2>Dashboard</h2>';
       if (!played.length) {
         html += '<div class="notice">No results entered yet.</div>';
       } else {
@@ -466,18 +577,17 @@
       let html = '<h2>💰 Kitty & Payments</h2>';
       
       if (!app.treasurerUnlocked) {
-        html += `<div class="card">
-          <div style="margin-bottom:12px;">
-            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Enter PIN to unlock treasurer mode:</label>
-            <input type="password" id="pin-input" placeholder="1234" style="width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);margin-bottom:8px;">
-            <button class="btn-primary" onclick="unlockTreasurer()" style="width:100%">Unlock</button>
+        html += `<div class="unlock-form">
+          <div class="form-group">
+            <label class="form-label">Treasurer PIN</label>
+            <input class="form-input" type="password" id="pin-input" placeholder="••••">
           </div>
+          <button class="btn-primary" style="width:100%" onclick="unlockTreasurer()">Unlock Treasurer Mode</button>
         </div>`;
       } else {
-        html += `<div style="padding:8px 12px;background:rgba(0,230,118,0.1);border:1px solid var(--green);border-radius:6px;margin-bottom:16px;color:var(--green);font-size:12px;font-weight:700">🔓 Treasurer mode active</div>`;
+        html += `<div class="treasurer-badge">🔓 Treasurer Mode Active</div>`;
+        html += '<div class="notice">Kitty data will show once payment data is added.</div>';
       }
-      
-      html += '<div class="notice">Kitty data will show once payment data is added.</div>';
       el.innerHTML = html;
     }
 
@@ -486,6 +596,7 @@
       if (pin === TREASURER_PIN) {
         app.treasurerUnlocked = true;
         renderKitty();
+        renderFixtures();
       } else {
         alert('Incorrect PIN');
       }
@@ -512,9 +623,6 @@
       el.innerHTML = html;
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // INIT
-    // ═══════════════════════════════════════════════════════════
     window.addEventListener('DOMContentLoaded', loadAllData);
   </script>
 </body>
