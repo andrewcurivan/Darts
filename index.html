@@ -1,629 +1,794 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Livin La Vida Darts</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --bg: #0d0f0f;
-      --surface: #1a1d1d;
-      --surface2: #232626;
-      --border: #2a3030;
-      --text: #e8ebeb;
-      --muted: #7a9090;
-      --green: #00e676;
-      --red: #ff3d57;
-      --amber: #ffab00;
-      --purple: #b388ff;
-    }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      line-height: 1.6;
-    }
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .header-logo {
-      font-family: 'Bebas Neue';
-      font-size: 20px;
-      letter-spacing: 2px;
-      color: var(--green);
-    }
-    .header-text {
-      flex: 1;
-    }
-    .team-name {
-      font-family: 'Bebas Neue';
-      font-size: 18px;
-      letter-spacing: 1.5px;
-    }
-    .venue-tag {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-    .season-switcher {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-left: auto;
-      flex-shrink: 0;
-    }
-    .season-btn {
-      padding: 6px 14px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      font-family: 'DM Sans';
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .season-btn:hover { border-color: #3a4545; color: var(--text); }
-    .season-btn.active { border-color: var(--green); color: var(--green); background: rgba(0,230,118,0.08); }
-    .season-btn.locked { opacity: 0.6; }
-    
-    .player-picker {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      overflow-x: auto;
-      flex-wrap: wrap;
-    }
-    .player-chip {
-      padding: 6px 16px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .player-chip:hover { border-color: #3a4545; }
-    .player-chip.active { border-color: var(--green); color: var(--green); background: rgba(0,230,118,0.08); }
-    
-    .tabs {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-      display: flex;
-      gap: 0;
-      overflow-x: auto;
-    }
-    .tab {
-      padding: 12px 18px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--muted);
-      border: none;
-      background: none;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .tab:hover { color: var(--text); }
-    .tab.active { color: var(--green); border-bottom-color: var(--green); }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-    .container.hidden { display: none; }
-    
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-    .card-title {
-      font-family: 'Bebas Neue';
-      font-size: 16px;
-      letter-spacing: 1px;
-      margin-bottom: 10px;
-      color: var(--text);
-    }
-    .fixture-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-    .fixture-info {
-      flex: 1;
-    }
-    .fixture-opponent {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .fixture-meta {
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .fixture-availability {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--green);
-    }
-    
-    .notice {
-      padding: 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--muted);
-      text-align: center;
-      margin: 20px 0;
-    }
-    
-    .loading {
-      padding: 40px;
-      text-align: center;
-      color: var(--muted);
-    }
-    .spinner {
-      width: 30px;
-      height: 30px;
-      border: 3px solid var(--border);
-      border-top-color: var(--green);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    
-    h2 {
-      font-family: 'Bebas Neue';
-      font-size: 24px;
-      letter-spacing: 1.5px;
-      margin-bottom: 16px;
-      color: var(--text);
-    }
-    
-    button {
-      font-family: 'DM Sans';
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    
-    .btn-primary {
-      background: var(--green);
-      color: #0d0f0f;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 13px;
-    }
-    .btn-primary:hover { opacity: 0.85; }
-    
-    .form-group {
-      margin-bottom: 14px;
-    }
-    .form-label {
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
-    .form-input, .form-select {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-family: 'DM Sans';
-      font-size: 13px;
-    }
-    .form-input:focus, .form-select:focus {
-      outline: none;
-      border-color: var(--green);
-      box-shadow: 0 0 0 2px rgba(0,230,118,0.1);
-    }
-    .form-select {
-      cursor: pointer;
-    }
-    
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .form-row.three {
-      grid-template-columns: 1fr 1fr 1fr;
-    }
-    
-    .unlock-form {
-      max-width: 300px;
-      margin: 0 auto;
-      padding: 20px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-    }
-    
-    .treasurer-badge {
-      display: inline-block;
-      padding: 4px 10px;
-      background: rgba(0,230,118,0.1);
-      border: 1px solid var(--green);
-      color: var(--green);
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-      margin-top: 8px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Livin La Vida Darts</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d0f0f;--surface:#1a1d1d;--surface2:#232626;--border:#2a3030;--text:#e8ebeb;--muted:#7a9090;--green:#00e676;--red:#ff3d57;--amber:#ffab00;--purple:#b388ff}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 22px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.logo{width:34px;height:34px;flex-shrink:0}
+.header-text{flex:1;min-width:0}
+.team-name{font-family:'Bebas Neue';font-size:19px;letter-spacing:1.5px}
+.venue-tag{font-size:11px;color:var(--muted);margin-top:1px}
+.season-switcher{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
+.season-btn{padding:5px 13px;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans';font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.season-btn:hover{border-color:#3a4545;color:var(--text)}
+.season-btn.active{border-color:var(--green);color:var(--green);background:rgba(0,230,118,.08)}
+.season-btn.locked{border-color:var(--amber);color:var(--amber)}
+.locked-bar{display:flex;align-items:center;gap:10px;padding:8px 22px;background:rgba(255,171,0,.07);border-bottom:1px solid rgba(255,171,0,.2);font-size:12px;color:var(--amber)}
+.locked-bar.hidden{display:none}
+.player-picker{background:var(--surface);border-bottom:1px solid var(--border);padding:11px 22px;display:flex;align-items:center;gap:9px;overflow-x:auto;flex-wrap:wrap}
+.pp-label{font-size:12px;color:var(--muted);margin-right:2px}
+.player-chip{padding:5px 15px;border-radius:18px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.player-chip:hover{border-color:#3a4545}
+.player-chip.active{border-color:var(--green);color:var(--green);background:rgba(0,230,118,.08)}
+.t-badge{font-size:9px;padding:2px 5px;border-radius:4px;background:rgba(179,136,255,.15);color:var(--purple);font-weight:700;letter-spacing:.3px}
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 22px;display:flex;overflow-x:auto}
+.tab{padding:12px 16px;font-size:13px;font-weight:600;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.container{max-width:1000px;margin:0 auto;padding:22px}
+.container.hidden{display:none}
+h2{font-family:'Bebas Neue';font-size:23px;letter-spacing:1.3px;margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.card-title{font-family:'Bebas Neue';font-size:15px;letter-spacing:1px;margin-bottom:10px;color:var(--green)}
+.notice{padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--muted);text-align:center;margin:14px 0}
+.loading{padding:50px;text-align:center;color:var(--muted)}
+.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+button{font-family:'DM Sans';cursor:pointer;transition:all .15s}
+.btn{padding:9px 18px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:600}
+.btn:hover{border-color:#3a4545}
+.btn-primary{background:var(--green);color:#0d0f0f;border:none;padding:10px 20px;border-radius:7px;font-weight:700;font-size:13px}
+.btn-primary:hover{opacity:.88}
+.btn-sm{padding:5px 11px;font-size:12px;border-radius:6px}
+.form-group{margin-bottom:13px}
+.form-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;font-weight:600}
+.form-input,.form-select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:6px;font-family:'DM Sans';font-size:13px}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--green)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.form-row.three{grid-template-columns:1fr 1fr 1fr}
+.unlock-form{max-width:300px;margin:0 auto;padding:20px}
+.t-active-badge{display:inline-block;padding:5px 12px;background:rgba(0,230,118,.1);border:1px solid var(--green);color:var(--green);border-radius:5px;font-size:11px;font-weight:700;margin-bottom:14px}
+
+/* Fixture card */
+.fixture-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;margin-bottom:11px;overflow:hidden}
+.fc-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer}
+.fc-head:hover{background:var(--surface2)}
+.fc-opp{font-size:15px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.fc-meta{font-size:12px;color:var(--muted)}
+.fc-avail{text-align:right;font-size:12px}
+.fc-avail .big{font-size:17px;font-weight:700;color:var(--green)}
+.next-badge{font-size:9px;font-weight:700;letter-spacing:.5px;color:var(--amber);background:rgba(255,171,0,.12);padding:2px 7px;border-radius:4px}
+.fc-body{padding:0 16px 16px;border-top:1px solid var(--border)}
+.avail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px;margin-top:13px}
+.avail-row{display:flex;align-items:center;justify-content:space-between;padding:7px 11px;background:var(--surface2);border-radius:6px;font-size:13px}
+.avail-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px}
+.dot-yes{background:var(--green)}.dot-no{background:var(--red)}.dot-maybe{background:var(--amber)}.dot-none{background:var(--border)}
+.my-response{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.resp-btns{display:flex;gap:8px;margin-top:8px}
+.resp-btn{flex:1;padding:10px;border-radius:8px;border:2px solid var(--border);background:var(--surface2);font-weight:700;font-size:13px;color:var(--muted)}
+.resp-btn.yes.sel{border-color:var(--green);color:var(--green);background:rgba(0,230,118,.12)}
+.resp-btn.maybe.sel{border-color:var(--amber);color:var(--amber);background:rgba(255,171,0,.12)}
+.resp-btn.no.sel{border-color:var(--red);color:var(--red);background:rgba(255,61,87,.12)}
+
+/* Results */
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;margin-bottom:11px;overflow:hidden}
+.result-card.win{border-color:rgba(0,230,118,.35);background:linear-gradient(180deg,rgba(0,230,118,.04) 0%,var(--surface) 60px)}
+.rc-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer}
+.rc-score{font-family:'Bebas Neue';font-size:22px;letter-spacing:1px}
+.wl-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;letter-spacing:.5px}
+.wl-w{background:rgba(0,230,118,.15);color:var(--green)}
+.wl-l{background:rgba(255,61,87,.15);color:var(--red)}
+.wl-d{background:rgba(122,144,144,.15);color:var(--muted)}
+.win-banner{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--green);padding:3px 9px;background:rgba(0,230,118,.1);border-radius:4px}
+.rc-body{padding:14px 16px;border-top:1px solid var(--border);font-size:13px}
+.game-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.game-row:last-child{border:none}
+
+/* Dashboard */
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:18px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:14px;text-align:center}
+.sc-big{font-family:'Bebas Neue';font-size:28px;line-height:1}
+.sc-name{font-size:12px;font-weight:600;margin-top:3px}
+.sc-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.lb-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.lb-row:last-child{border:none}
+.lb-rank{font-size:14px;width:26px;text-align:center;flex-shrink:0}
+.lb-avatar{width:30px;height:30px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:13px;flex-shrink:0}
+.lb-name{flex:1;font-size:13px;font-weight:600}
+.lb-bar-wrap{flex:1.5;height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;max-width:160px}
+.lb-bar-fill{height:100%;background:var(--green);border-radius:4px}
+.lb-val{font-size:14px;font-weight:700;min-width:42px;text-align:right}
+.lb-sub{font-size:11px;color:var(--muted);min-width:60px;text-align:right}
+.form-dots{display:flex;gap:4px}
+.form-dot{width:18px;height:18px;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#0d0f0f}
+.form-dot.w{background:var(--green)}.form-dot.l{background:var(--red)}
+.chart-players{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chart-pbtn{padding:4px 11px;border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer}
+.chart-pbtn.active{border-color:var(--green);color:var(--green);background:rgba(0,230,118,.08)}
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:14px;overflow-x:auto}
+
+/* Kitty */
+.balance-card{border-radius:11px;padding:16px 18px;margin-bottom:18px;display:flex;align-items:center;gap:15px}
+.balance-card.credit{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.25)}
+.balance-card.debt{background:rgba(255,61,87,.07);border:1px solid rgba(255,61,87,.25)}
+.balance-card.square{background:rgba(122,144,144,.07);border:1px solid var(--border)}
+.bc-avatar{width:42px;height:42px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:17px;flex-shrink:0}
+.bc-name{font-size:14px;font-weight:700}
+.bc-bal{font-family:'Bebas Neue';font-size:27px;line-height:1}
+.credit .bc-bal{color:var(--green)}.debt .bc-bal{color:var(--red)}.square .bc-bal{color:var(--muted)}
+.bc-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.bc-detail{font-size:12px;color:var(--muted);margin-top:2px}
+.bal-table-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.bal-table-row:last-child{border:none}
+.pay-log{margin-top:8px}
+.pay-log-item{display:flex;align-items:center;gap:9px;padding:5px 9px;font-size:11px;border-radius:4px}
+.pay-log-item:nth-child(odd){background:var(--surface2)}
+.pl-date{color:var(--muted);min-width:52px}
+.pl-note{flex:1}
+.pl-amt{font-weight:700}.pl-amt.pos{color:var(--green)}.pl-amt.neg{color:var(--red)}
+.qp-btns{display:flex;gap:5px}
+.qp-btn{padding:4px 9px;font-size:11px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.qp-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* Squad */
+.email-strip{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:14px 16px;margin-bottom:14px}
+.squad-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.squad-row:last-child{border:none}
+.sq-avatar{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:14px;flex-shrink:0}
+.sq-info{flex:1;min-width:0}
+.sq-name{font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px}
+.sq-meta{font-size:11px;color:var(--muted)}
+.inactive-tag{font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(122,144,144,.15);color:var(--muted);font-weight:700}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#0d0f0f;padding:10px 22px;border-radius:8px;font-weight:700;font-size:13px;z-index:1000;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.hidden{display:none}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--border)}
+.modal-head h3{font-family:'Bebas Neue';font-size:18px;letter-spacing:1px}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+.modal-body{padding:18px}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--border);flex-wrap:wrap}
+.modal-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:6px;font-family:'DM Sans';font-size:13px;line-height:1.6;min-height:240px;resize:vertical}
+.fix-check{display:flex;align-items:center;gap:9px;padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:pointer}
+.fix-check.on{border-color:var(--green);background:rgba(0,230,118,.05)}
+.fix-check input{accent-color:var(--green);width:15px;height:15px}
+</style>
 </head>
 <body>
-  <header>
-    <div class="header-logo">🎯</div>
-    <div class="header-text">
-      <div class="team-name">Livin La Vida Darts</div>
-      <div class="venue-tag">Home: Royal British Legion · Andover</div>
-    </div>
-    <div class="season-switcher" id="season-switcher"></div>
-  </header>
+<header>
+<svg class="logo" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="#00e676" stroke-width="4"/><circle cx="50" cy="50" r="30" fill="none" stroke="#7a9090" stroke-width="3"/><circle cx="50" cy="50" r="14" fill="none" stroke="#ff3d57" stroke-width="3"/><circle cx="50" cy="50" r="4" fill="#ff3d57"/></svg>
+<div class="header-text">
+<div class="team-name">Livin La Vida Darts</div>
+<div class="venue-tag">Home: Royal British Legion · Andover</div>
+</div>
+<div class="season-switcher" id="season-switcher"></div>
+</header>
+<div class="locked-bar hidden" id="locked-bar">🔒 Viewing archived season — read only</div>
+<div class="player-picker" id="player-picker"></div>
+<div class="tabs" id="tabs"></div>
 
-  <div class="player-picker" id="player-picker"></div>
-  <div class="tabs" id="tabs"></div>
+<div class="container" id="view-loading"><div class="loading"><div class="spinner"></div><p>Loading team data…</p></div></div>
+<div class="container hidden" id="view-fixtures"></div>
+<div class="container hidden" id="view-results"></div>
+<div class="container hidden" id="view-enter"></div>
+<div class="container hidden" id="view-dashboard"></div>
+<div class="container hidden" id="view-kitty"></div>
+<div class="container hidden" id="view-squad"></div>
 
-  <div class="container" id="view-loading">
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Loading team data from Supabase...</p>
-    </div>
-  </div>
+<div class="modal-overlay hidden" id="email-modal">
+<div class="modal-box">
+<div class="modal-head"><h3>✉️ Availability Email</h3><button class="modal-close" onclick="closeEmail()">✕</button></div>
+<div class="modal-body">
+<div class="form-label">Include fixtures</div>
+<div id="email-fixtures"></div>
+<div class="form-label" style="margin-top:14px">Email body (editable)</div>
+<textarea class="modal-textarea" id="email-body"></textarea>
+</div>
+<div class="modal-foot">
+<button class="btn" onclick="closeEmail()">Cancel</button>
+<button class="btn" onclick="copyEmail()">📋 Copy text</button>
+<button class="btn-primary" onclick="openMailto()">📧 Open in Mail</button>
+</div>
+</div>
+</div>
 
-  <div class="container hidden" id="view-fixtures"></div>
-  <div class="container hidden" id="view-dashboard"></div>
-  <div class="container hidden" id="view-kitty"></div>
-  <div class="container hidden" id="view-squad"></div>
+<div class="toast" id="toast"></div>
+<script>
 
-  <script>
-    const SUPABASE_URL = 'https://srhcogzmdbosxkvogmnj.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyaGNvZ3ptZGJvc3hrdm9nbW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTA4MTYsImV4cCI6MjA5NTM4NjgxNn0.dLyVubiEg6xQDs_21ilkjObY1XigAychXls4qtdRE54';
-    
-    let app = {
-      currentPlayer: '',
-      currentSeason: '2627',
-      treasurerUnlocked: false,
-      players: [],
-      seasons: [],
-      fixtures: [],
-      availability: {},
-      results: {},
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const SUPABASE_URL='https://srhcogzmdbosxkvogmnj.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyaGNvZ3ptZGJvc3hrdm9nbW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTA4MTYsImV4cCI6MjA5NTM4NjgxNn0.dLyVubiEg6xQDs_21ilkjObY1XigAychXls4qtdRE54';
+const TREASURER_PIN='1234';
+const ACTIVE_SEASON='2627';
+
+let app={ currentPlayer:'', currentSeason:'2627', treasurerUnlocked:false, activeTab:'fixtures',
+  players:[], seasons:[], fixtures:[], availability:{}, results:{}, costs:{}, payments:{}, chartPlayer:'' };
+
+// id helpers
+function pid(name){ const p=app.players.find(x=>x.name===name); return p?p.id:name.toLowerCase(); }
+function pname(id){ const p=app.players.find(x=>x.id===id); return p?p.name:id; }
+function ini(name){ return name.slice(0,2).toUpperCase(); }
+function activePlayers(){ return app.players.filter(p=>p.status==='active').map(p=>p.name); }
+function allPlayerNames(){ return app.players.map(p=>p.name); }
+function isLocked(){ const s=app.seasons.find(x=>x.id===app.currentSeason); return s?s.locked:false; }
+function todayStr(){ const d=new Date(); return d.getDate()+' '+d.toLocaleString('en-GB',{month:'short'}); }
+
+// ═══════════════════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════════════════
+async function api(table,method='GET',filters='',data=null){
+  const opts={method,headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':'return=minimal'}};
+  if(data)opts.body=JSON.stringify(data);
+  const res=await fetch(SUPABASE_URL+'/rest/v1/'+table+filters,opts);
+  if(!res.ok){ const t=await res.text(); throw new Error(res.status+': '+t); }
+  if(method==='DELETE'||(method==='PATCH'))return null;
+  const txt=await res.text();
+  return txt?JSON.parse(txt):null;
+}
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+// ═══════════════════════════════════════════════════════════
+// LOAD
+// ═══════════════════════════════════════════════════════════
+async function loadAll(){
+  try{
+    app.players=await api('players','GET','?select=*&order=name');
+    app.seasons=await api('seasons','GET','?select=*&order=id');
+    await loadSeason(app.currentSeason);
+    renderAll();
+  }catch(e){
+    document.getElementById('view-loading').innerHTML='<div class="notice" style="color:var(--red)">Failed to load: '+e.message+'</div>';
+  }
+}
+
+async function loadSeason(sid){
+  app.fixtures=await api('fixtures','GET','?season_id=eq.'+sid+'&order=id');
+  const fids=app.fixtures.map(f=>f.id);
+
+  // availability
+  app.availability={};
+  app.fixtures.forEach(f=>app.availability[f.id]={});
+  if(fids.length){
+    const av=await api('availability','GET','?fixture_id=in.('+fids.join(',')+')');
+    av.forEach(a=>{ if(!app.availability[a.fixture_id])app.availability[a.fixture_id]={}; app.availability[a.fixture_id][a.player_id]=a.status; });
+  }
+
+  // results
+  app.results={};
+  let singles=[],doubles=[],pstats=[];
+  if(fids.length){
+    singles=await api('results_singles','GET','?fixture_id=in.('+fids.join(',')+')&order=slot');
+    doubles=await api('results_doubles','GET','?fixture_id=in.('+fids.join(',')+')&order=slot');
+    pstats=await api('player_stats','GET','?fixture_id=in.('+fids.join(',')+')');
+  }
+  app.fixtures.forEach(f=>{
+    const st={};
+    pstats.filter(s=>s.fixture_id===f.id).forEach(s=>{ st[pname(s.player_id)]={high:s.high_score||'',checkout:s.checkout||''}; });
+    app.results[f.id]={
+      singles:singles.filter(s=>s.fixture_id===f.id).map(s=>({player:pname(s.player_id),score:s.score})),
+      doubles:doubles.filter(d=>d.fixture_id===f.id).map(d=>({p1:pname(d.player1_id),p2:pname(d.player2_id),score:d.score})),
+      stats:st,
+      saved:singles.some(s=>s.fixture_id===f.id)||!!f.team_score
     };
+  });
 
-    const TREASURER_PLAYER = 'Hayden';
-    const TREASURER_PIN = '1234';
+  // costs
+  app.costs={};
+  if(fids.length){
+    const c=await api('fixture_costs','GET','?fixture_id=in.('+fids.join(',')+')');
+    c.forEach(x=>app.costs[x.fixture_id]=parseFloat(x.cost));
+  }
 
-    async function apiCall(table, method = 'GET', filters = '', data = null) {
-      const url = `${SUPABASE_URL}/rest/v1/${table}${filters}`;
-      const opts = {
-        method,
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      };
-      if (data) opts.body = JSON.stringify(data);
-      
-      const res = await fetch(url, opts);
-      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
-      if (method === 'DELETE') return null;
-      return res.json();
+  // payments
+  app.payments={};
+  allPlayerNames().forEach(n=>app.payments[n]=[]);
+  const pm=await api('payments','GET','?season_id=eq.'+sid+'&order=created_at');
+  pm.forEach(p=>{ const n=pname(p.player_id); if(!app.payments[n])app.payments[n]=[]; app.payments[n].push(p); });
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESULT HELPERS
+// ═══════════════════════════════════════════════════════════
+function isWin(score){ if(!score||!score.includes('-'))return false; const[a,b]=score.split('-').map(Number); return a>b; }
+function pastFixtures(){ return app.fixtures.filter(f=>app.results[f.id]&&app.results[f.id].saved); }
+function upcomingFixtures(){ return app.fixtures.filter(f=>!app.results[f.id]||!app.results[f.id].saved); }
+
+function matchTotals(fid){
+  const r=app.results[fid]; let w=0,l=0;
+  if(!r)return{w,l};
+  r.singles.forEach(g=>{ if(g.score){ isWin(g.score)?w++:l++; } });
+  r.doubles.forEach(g=>{ if(g.score){ isWin(g.score)?w++:l++; } });
+  return{w,l};
+}
+function matchResultLabel(fid){
+  const f=app.fixtures.find(x=>x.id===fid);
+  if(f&&f.team_score){ const[a,b]=f.team_score.split('-').map(Number); return{cls:a>b?'win':a<b?'loss':'draw',score:f.team_score}; }
+  const{w,l}=matchTotals(fid);
+  if(w===0&&l===0)return null;
+  return{cls:w>l?'win':w<l?'loss':'draw',score:w+'-'+l};
+}
+function getPlayersWhoPlayed(fid){
+  const r=app.results[fid]; const set=new Set();
+  if(!r)return[];
+  r.singles.forEach(g=>{ if(g.player&&g.score)set.add(g.player); });
+  r.doubles.forEach(g=>{ if(g.score){ if(g.p1)set.add(g.p1); if(g.p2)set.add(g.p2); } });
+  return[...set];
+}
+
+// player aggregate stats (across loaded season)
+function getPlayerStats(name){
+  let games=0,wins=0,bestHigh=0,bestCO=0; const form=[];
+  pastFixtures().forEach(f=>{
+    const r=app.results[f.id];
+    r.singles.forEach(g=>{ if(g.player===name&&g.score){ games++; const w=isWin(g.score); if(w)wins++; form.push(w?'w':'l'); } });
+    r.doubles.forEach(g=>{ if((g.p1===name||g.p2===name)&&g.score){ games++; const w=isWin(g.score); if(w)wins++; form.push(w?'w':'l'); } });
+    const st=r.stats[name];
+    if(st){ if(+st.high>bestHigh)bestHigh=+st.high; if(+st.checkout>bestCO)bestCO=+st.checkout; }
+  });
+  return{ name,games,wins,winPct:games?Math.round(wins/games*100):null,bestHigh,bestCO,form:form.slice(-5).reverse() };
+}
+
+function getPlayerBalance(name){
+  let paid=0,owed=0;
+  (app.payments[name]||[]).forEach(p=>{ const a=parseFloat(p.amount); if(a>0)paid+=a; else owed+=Math.abs(a); });
+  return{ paid,owed,balance:paid-owed };
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER ROOT
+// ═══════════════════════════════════════════════════════════
+function renderAll(){
+  renderSeasons(); renderPicker(); renderTabs();
+  renderFixtures(); renderResultsView(); renderEnter(); renderDashboard(); renderKitty(); renderSquad();
+  document.getElementById('locked-bar').classList.toggle('hidden',!isLocked());
+}
+
+function renderSeasons(){
+  document.getElementById('season-switcher').innerHTML=app.seasons.map(s=>
+    '<button class="season-btn'+(s.id===app.currentSeason?' active':'')+(s.locked?' locked':'')+'" onclick="switchSeason(\''+s.id+'\')">'+s.label+(s.locked?' 🔒':'')+'</button>'
+  ).join('');
+}
+async function switchSeason(sid){ app.currentSeason=sid; document.getElementById('view-loading').classList.remove('hidden'); document.querySelectorAll('[id^=view-]').forEach(v=>{if(v.id!=='view-loading')v.classList.add('hidden')}); await loadSeason(sid); renderAll(); showTab(app.activeTab); }
+
+function renderPicker(){
+  document.getElementById('player-picker').innerHTML='<span class="pp-label">You are:</span>'+
+    activePlayers().map(n=>'<button class="player-chip'+(n===app.currentPlayer?' active':'')+'" onclick="setPlayer(\''+n+'\')">'+n+(n==='Hayden'?'<span class="t-badge">TREASURER</span>':'')+'</button>').join('');
+}
+function setPlayer(n){ app.currentPlayer=n; renderPicker(); renderFixtures(); renderKitty(); renderDashboard(); }
+
+function renderTabs(){
+  const tabs=[['fixtures','Fixtures'],['results','Results'],['enter','Enter Results'],['dashboard','Dashboard'],['kitty','Kitty'],['squad','Squad']];
+  document.getElementById('tabs').innerHTML=tabs.map(t=>
+    '<button class="tab'+(t[0]===app.activeTab?' active':'')+'" onclick="showTab(\''+t[0]+'\')">'+t[1]+'</button>'
+  ).join('');
+}
+function showTab(id){
+  app.activeTab=id;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('[id^=view-]').forEach(v=>v.classList.add('hidden'));
+  document.getElementById('view-'+id).classList.remove('hidden');
+  renderTabs();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FIXTURES + AVAILABILITY
+// ═══════════════════════════════════════════════════════════
+let expandedFix=null;
+function renderFixtures(){
+  const el=document.getElementById('view-fixtures');
+  let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h2 style="margin:0">Fixtures</h2>';
+  if(!isLocked()) html+='<button class="btn btn-sm" onclick="openEmail()">✉️ Email availability</button>';
+  html+='</div>';
+
+  if(app.treasurerUnlocked && !isLocked()){
+    html+='<div class="card"><div class="card-title">➕ Add Fixture</div>'
+      +'<div class="form-group"><label class="form-label">Date</label><input class="form-input" id="nf-date" placeholder="Fri 5 Sep 2026"></div>'
+      +'<div class="form-row"><div class="form-group"><label class="form-label">Time</label><input class="form-input" id="nf-time" placeholder="7:30pm"></div>'
+      +'<div class="form-group"><label class="form-label">Opponent</label><input class="form-input" id="nf-opp" placeholder="The Crown"></div></div>'
+      +'<div class="form-row"><div class="form-group"><label class="form-label">Venue</label><input class="form-input" id="nf-venue" placeholder="Royal British Legion"></div>'
+      +'<div class="form-group"><label class="form-label">Home / Away</label><select class="form-select" id="nf-home"><option value="true">🏠 Home</option><option value="false">✈️ Away</option></select></div></div>'
+      +'<div class="form-group"><label class="form-label">Competition</label><select class="form-select" id="nf-comp"><option>League</option><option>Cup R1</option><option>Cup R2</option><option>Plate P</option><option>Friendly</option></select></div>'
+      +'<button class="btn-primary" style="width:100%" onclick="addFixture()">Add Fixture</button></div>';
+  }
+
+  const up=upcomingFixtures();
+  if(!up.length && !pastFixtures().length){ html+='<div class="notice">No fixtures for this season yet.</div>'; el.innerHTML=html; return; }
+
+  const nextId=up.length?up[0].id:null;
+  app.fixtures.forEach(f=>{
+    const av=app.availability[f.id]||{};
+    const counts={yes:0,no:0,maybe:0,none:0};
+    activePlayers().forEach(n=>{ const s=av[pid(n)]||'none'; counts[s]=(counts[s]||0)+1; });
+    const exp=expandedFix===f.id;
+    html+='<div class="fixture-card">'
+      +'<div class="fc-head" onclick="toggleFix('+f.id+')">'
+      +'<div><div class="fc-opp">vs '+f.opponent+(f.id===nextId?'<span class="next-badge">NEXT UP</span>':'')+'</div>'
+      +'<div class="fc-meta">'+f.date+' · '+(f.time||'7:30pm')+' · '+(f.venue||(f.home?'Royal British Legion':'TBC'))+' · '+(f.home?'🏠 Home':'✈️ Away')+'</div></div>'
+      +'<div class="fc-avail"><div class="big">'+counts.yes+'</div><div>available'+(counts.maybe?' · '+counts.maybe+' maybe':'')+'</div></div></div>';
+    if(exp){
+      html+='<div class="fc-body"><div class="avail-grid">';
+      activePlayers().forEach(n=>{ const s=av[pid(n)]||'none'; html+='<div class="avail-row"><span><span class="avail-dot dot-'+s+'"></span>'+n+'</span><span style="color:var(--muted);font-size:11px">'+(s==='none'?'—':s)+'</span></div>'; });
+      html+='</div>';
+      if(app.currentPlayer && !isLocked()){
+        const mine=av[pid(app.currentPlayer)]||'none';
+        html+='<div class="my-response"><div style="font-size:12px;color:var(--muted)">Your availability ('+app.currentPlayer+'):</div><div class="resp-btns">'
+          +'<button class="resp-btn yes'+(mine==='yes'?' sel':'')+'" onclick="setAvail('+f.id+',\'yes\')">✓ In</button>'
+          +'<button class="resp-btn maybe'+(mine==='maybe'?' sel':'')+'" onclick="setAvail('+f.id+',\'maybe\')">? Maybe</button>'
+          +'<button class="resp-btn no'+(mine==='no'?' sel':'')+'" onclick="setAvail('+f.id+',\'no\')">✗ Out</button></div></div>';
+      } else if(!app.currentPlayer){
+        html+='<div class="my-response" style="font-size:12px;color:var(--muted)">Select your name at the top to set availability.</div>';
+      }
+      html+='</div>';
     }
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+function toggleFix(id){ expandedFix=expandedFix===id?null:id; renderFixtures(); }
 
-    async function loadAllData() {
-      try {
-        app.players = await apiCall('players', 'GET', '?select=*');
-        app.seasons = await apiCall('seasons', 'GET', '?select=*');
-        await loadSeasonData(app.currentSeason);
-        renderApp();
-      } catch (error) {
-        const el = document.getElementById('view-loading');
-        el.innerHTML = `<div style="color:var(--red);padding:20px;text-align:center">Failed to load: ${error.message}</div>`;
+async function setAvail(fid,status){
+  if(isLocked()){ toast('Season locked'); return; }
+  const playerId=pid(app.currentPlayer);
+  if(!app.availability[fid])app.availability[fid]={};
+  app.availability[fid][playerId]=status;
+  renderFixtures();
+  try{
+    // upsert
+    await api('availability','POST','?on_conflict=fixture_id,player_id',{fixture_id:fid,player_id:playerId,status});
+    toast('Saved ✓');
+  }catch(e){
+    // try PATCH if conflict insert not supported
+    try{ await api('availability','PATCH','?fixture_id=eq.'+fid+'&player_id=eq.'+playerId,{status}); toast('Saved ✓'); }
+    catch(e2){ toast('Save failed'); }
+  }
+}
+
+async function addFixture(){
+  const date=document.getElementById('nf-date').value.trim();
+  const time=document.getElementById('nf-time').value.trim()||'7:30pm';
+  const opp=document.getElementById('nf-opp').value.trim();
+  const venue=document.getElementById('nf-venue').value.trim();
+  const home=document.getElementById('nf-home').value==='true';
+  const comp=document.getElementById('nf-comp').value;
+  if(!date||!opp){ toast('Date and opponent required'); return; }
+  try{
+    await api('fixtures','POST','',{season_id:app.currentSeason,opponent:opp,date,time,home,comp,venue});
+    await loadSeason(app.currentSeason); renderAll(); showTab('fixtures');
+    toast('Fixture added ✓');
+  }catch(e){ alert('Error: '+e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// EMAIL
+// ═══════════════════════════════════════════════════════════
+let emailFix=new Set();
+function openEmail(){
+  const up=upcomingFixtures(); if(!up.length){ toast('No upcoming fixtures'); return; }
+  emailFix=new Set(up.map(f=>f.id));
+  document.getElementById('email-fixtures').innerHTML=up.map(f=>
+    '<label class="fix-check on" id="efc-'+f.id+'"><input type="checkbox" checked onchange="toggleEmailFix('+f.id+',this.checked)"><span>vs '+f.opponent+' — '+f.date+'</span></label>'
+  ).join('');
+  buildEmailBody();
+  document.getElementById('email-modal').classList.remove('hidden');
+}
+function closeEmail(){ document.getElementById('email-modal').classList.add('hidden'); }
+function toggleEmailFix(id,on){ if(on)emailFix.add(id);else emailFix.delete(id); document.getElementById('efc-'+id).classList.toggle('on',on); buildEmailBody(); }
+function buildEmailBody(){
+  const fx=upcomingFixtures().filter(f=>emailFix.has(f.id));
+  const base=location.href.split('?')[0];
+  const lines=fx.map((f,i)=>(i+1)+'. '+f.date+' — vs '+f.opponent+' ('+(f.home?'Home @ '+(f.venue||'RBL'):'Away')+')').join('\n');
+  const links=activePlayers().map(n=>n+': '+base+'?player='+encodeURIComponent(n)+'&fixtures='+fx.map(f=>f.id).join(',')).join('\n');
+  document.getElementById('email-body').value='Hi everyone,\n\nWe need to know who can make these fixtures:\n\n'+lines+'\n\nTap your personal link to set your availability for all games in one go:\n\n'+links+'\n\nCheers,\nHayden';
+}
+function copyEmail(){ navigator.clipboard.writeText(document.getElementById('email-body').value); toast('Copied ✓'); }
+function openMailto(){
+  const to=app.players.filter(p=>p.status==='active'&&p.email).map(p=>p.email).join(',');
+  const sub=encodeURIComponent('Livin La Vida Darts — Availability');
+  const body=encodeURIComponent(document.getElementById('email-body').value);
+  window.open('mailto:'+to+'?subject='+sub+'&body='+body,'_blank');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESULTS VIEW
+// ═══════════════════════════════════════════════════════════
+let expandedResult=null;
+function renderResultsView(){
+  const el=document.getElementById('view-results');
+  const past=pastFixtures();
+  if(!past.length){ el.innerHTML='<h2>Results</h2><div class="notice">No results yet this season.</div>'; return; }
+  let html='<h2>Results</h2>';
+  past.slice().reverse().forEach(f=>{
+    const lbl=matchResultLabel(f.id); const win=lbl&&lbl.cls==='win';
+    const exp=expandedResult===f.id;
+    html+='<div class="result-card'+(win?' win':'')+'">'
+      +'<div class="rc-head" onclick="toggleResult('+f.id+')">'
+      +'<div><div style="font-weight:700;font-size:15px">vs '+f.opponent+'</div><div class="fc-meta">'+f.date+' · '+(f.home?'Home':'Away')+'</div>'+(win?'<span class="win-banner">🏆 WIN</span>':'')+'</div>'
+      +'<div style="text-align:right"><div class="rc-score">'+(lbl?lbl.score:'—')+'</div>'+(lbl?'<span class="wl-badge wl-'+lbl.cls[0]+'">'+lbl.cls.toUpperCase()+'</span>':'')+'</div></div>';
+    if(exp){
+      const r=app.results[f.id];
+      html+='<div class="rc-body">';
+      if(r.singles.length){ html+='<div style="font-weight:700;margin-bottom:5px">Singles</div>'; r.singles.forEach(g=>{ if(g.player)html+='<div class="game-row"><span>'+g.player+'</span><span style="color:'+(isWin(g.score)?'var(--green)':'var(--red)')+'">'+(g.score||'—')+'</span></div>'; }); }
+      if(r.doubles.length){ html+='<div style="font-weight:700;margin:10px 0 5px">Doubles</div>'; r.doubles.forEach(g=>{ if(g.score)html+='<div class="game-row"><span>'+g.p1+' & '+g.p2+'</span><span style="color:'+(isWin(g.score)?'var(--green)':'var(--red)')+'">'+g.score+'</span></div>'; }); }
+      const stats=Object.entries(r.stats).filter(([n,s])=>s.high||s.checkout);
+      if(stats.length){ html+='<div style="font-weight:700;margin:10px 0 5px">Best stats</div>'; stats.forEach(([n,s])=>{ html+='<div class="game-row"><span>'+n+'</span><span style="color:var(--muted)">'+(s.high?'High '+s.high:'')+(s.checkout?' · CO '+s.checkout:'')+'</span></div>'; }); }
+      html+='</div>';
+    }
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+function toggleResult(id){ expandedResult=expandedResult===id?null:id; renderResultsView(); }
+
+// ═══════════════════════════════════════════════════════════
+// ENTER RESULTS
+// ═══════════════════════════════════════════════════════════
+let enterFix=null;
+function renderEnter(){
+  const el=document.getElementById('view-enter');
+  if(!app.treasurerUnlocked){ el.innerHTML='<h2>Enter Results</h2><div class="unlock-form card"><div class="form-group"><label class="form-label">Treasurer PIN</label><input class="form-input" type="password" id="pin-enter" placeholder="••••"></div><button class="btn-primary" style="width:100%" onclick="tryUnlock(\'pin-enter\')">Unlock</button></div>'; return; }
+  if(isLocked()){ el.innerHTML='<h2>Enter Results</h2><div class="notice">This season is archived. Switch to the current season to enter results.</div>'; return; }
+  let html='<h2>Enter Results</h2><div class="t-active-badge">🔓 Treasurer Mode</div>';
+  const choices=app.fixtures.map(f=>'<option value="'+f.id+'"'+(enterFix===f.id?' selected':'')+'>'+f.date+' vs '+f.opponent+(app.results[f.id].saved?' ✓':'')+'</option>').join('');
+  html+='<div class="card"><div class="form-group"><label class="form-label">Select fixture</label><select class="form-select" onchange="enterFix=parseInt(this.value);renderEnter()"><option value="">— choose —</option>'+choices+'</select></div></div>';
+  if(enterFix){ html+=buildEntryForm(enterFix); }
+  el.innerHTML=html;
+}
+function buildEntryForm(fid){
+  const f=app.fixtures.find(x=>x.id===fid); const r=app.results[fid];
+  const cost=app.costs[fid]||0; const isAway=!f.home;
+  const opts=(cur)=>{ const pool=new Set(activePlayers()); if(cur)pool.add(cur); return '<option value="">—</option>'+[...pool].map(n=>'<option'+(n===cur?' selected':'')+'>'+n+'</option>').join(''); };
+  let h='<div class="card"><div class="card-title">Match Fee</div><div style="display:flex;align-items:center;gap:8px"><span>£</span><input class="form-input" type="number" min="0" step="0.5" value="'+cost+'" style="width:90px" '+(isAway?'disabled':'')+' oninput="app.costs['+fid+']=parseFloat(this.value)||0"><span style="font-size:12px;color:var(--muted)">per player who played'+(isAway?' (away — usually free)':'')+'</span></div></div>';
+  h+='<div class="card"><div class="card-title">Singles (6)</div>';
+  for(let i=0;i<6;i++){ const g=r.singles[i]||{player:'',score:''}; h+='<div class="form-row" style="margin-bottom:7px"><select class="form-select" onchange="setSingle('+fid+','+i+',\'player\',this.value)">'+opts(g.player)+'</select><input class="form-input" placeholder="2-1" value="'+(g.score||'')+'" oninput="setSingle('+fid+','+i+',\'score\',this.value)"></div>'; }
+  h+='</div><div class="card"><div class="card-title">Doubles (3)</div>';
+  for(let i=0;i<3;i++){ const g=r.doubles[i]||{p1:'',p2:'',score:''}; h+='<div class="form-row three" style="margin-bottom:7px"><select class="form-select" onchange="setDouble('+fid+','+i+',\'p1\',this.value)">'+opts(g.p1)+'</select><select class="form-select" onchange="setDouble('+fid+','+i+',\'p2\',this.value)">'+opts(g.p2)+'</select><input class="form-input" placeholder="2-0" value="'+(g.score||'')+'" oninput="setDouble('+fid+','+i+',\'score\',this.value)"></div>'; }
+  h+='</div><div class="card"><div class="card-title">Player Stats</div>';
+  activePlayers().forEach(n=>{ const s=r.stats[n]||{high:'',checkout:''}; h+='<div class="form-row three" style="margin-bottom:7px;align-items:center"><span style="font-size:13px">'+n+'</span><input class="form-input" placeholder="High" value="'+(s.high||'')+'" oninput="setStat('+fid+',\''+n+'\',\'high\',this.value)"><input class="form-input" placeholder="Checkout" value="'+(s.checkout||'')+'" oninput="setStat('+fid+',\''+n+'\',\'checkout\',this.value)"></div>'; });
+  h+='</div><button class="btn-primary" style="width:100%" onclick="saveResults('+fid+')">💾 Save Results</button>';
+  return h;
+}
+function ensureRes(fid){ if(!app.results[fid])app.results[fid]={singles:[],doubles:[],stats:{},saved:false}; }
+function setSingle(fid,i,k,v){ ensureRes(fid); if(!app.results[fid].singles[i])app.results[fid].singles[i]={player:'',score:''}; app.results[fid].singles[i][k]=v; }
+function setDouble(fid,i,k,v){ ensureRes(fid); if(!app.results[fid].doubles[i])app.results[fid].doubles[i]={p1:'',p2:'',score:''}; app.results[fid].doubles[i][k]=v; }
+function setStat(fid,n,k,v){ ensureRes(fid); if(!app.results[fid].stats[n])app.results[fid].stats[n]={high:'',checkout:''}; app.results[fid].stats[n][k]=v; }
+
+async function saveResults(fid){
+  if(isLocked()){ toast('Season locked'); return; }
+  const r=app.results[fid];
+  try{
+    // wipe + reinsert singles
+    await api('results_singles','DELETE','?fixture_id=eq.'+fid);
+    const sIns=r.singles.map((g,i)=>g.player&&g.score?{fixture_id:fid,slot:i,player_id:pid(g.player),score:g.score}:null).filter(Boolean);
+    if(sIns.length)await api('results_singles','POST','',sIns);
+    // doubles
+    await api('results_doubles','DELETE','?fixture_id=eq.'+fid);
+    const dIns=r.doubles.map((g,i)=>g.p1&&g.p2&&g.score?{fixture_id:fid,slot:i,player1_id:pid(g.p1),player2_id:pid(g.p2),score:g.score}:null).filter(Boolean);
+    if(dIns.length)await api('results_doubles','POST','',dIns);
+    // stats
+    await api('player_stats','DELETE','?fixture_id=eq.'+fid);
+    const stIns=Object.entries(r.stats).map(([n,s])=>(s.high||s.checkout)?{fixture_id:fid,player_id:pid(n),high_score:parseInt(s.high)||0,checkout:parseInt(s.checkout)||0}:null).filter(Boolean);
+    if(stIns.length)await api('player_stats','POST','',stIns);
+    // cost
+    const cost=app.costs[fid]||0;
+    if(cost>0){ await api('fixture_costs','POST','?on_conflict=fixture_id',{fixture_id:fid,cost}).catch(async()=>{ await api('fixture_costs','PATCH','?fixture_id=eq.'+fid,{cost}); }); }
+    // team score
+    const{w,l}=matchTotals(fid);
+    await api('fixtures','PATCH','?id=eq.'+fid,{team_score:w+'-'+l,result:w>l?'W':w<l?'L':'D'});
+    // auto-charge
+    if(cost>0){
+      const f=app.fixtures.find(x=>x.id===fid);
+      const dateLabel=f.date.split(' ').slice(1,3).join(' ');
+      for(const n of getPlayersWhoPlayed(fid)){
+        const already=(app.payments[n]||[]).some(p=>p.type==='charge'&&p.fixture_id===fid);
+        if(!already){ await api('payments','POST','',{season_id:app.currentSeason,player_id:pid(n),amount:-cost,note:'Match fee vs '+f.opponent,date:dateLabel,type:'charge',fixture_id:fid}); }
       }
     }
+    await loadSeason(app.currentSeason); renderAll(); showTab('enter');
+    toast('Results saved ✓'+(cost>0?' · fees charged':''));
+  }catch(e){ alert('Save error: '+e.message); }
+}
 
-    async function loadSeasonData(seasonId) {
-      app.fixtures = await apiCall('fixtures', 'GET', `?season_id=eq.${seasonId}&order=id`);
-      const avail = await apiCall('availability', 'GET', '?select=*');
-      app.availability = {};
-      avail.forEach(a => {
-        if (!app.availability[a.fixture_id]) app.availability[a.fixture_id] = {};
-        app.availability[a.fixture_id][a.player_id] = a.status;
-      });
-      
-      const singles = await apiCall('results_singles', 'GET', '?select=*');
-      const doubles = await apiCall('results_doubles', 'GET', '?select=*');
-      
-      app.results = {};
-      app.fixtures.forEach(f => {
-        app.results[f.id] = {
-          singles: singles.filter(s => s.fixture_id === f.id),
-          doubles: doubles.filter(d => d.fixture_id === f.id),
-        };
-      });
-    }
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function renderDashboard(){
+  const el=document.getElementById('view-dashboard');
+  const past=pastFixtures();
+  if(!past.length){ el.innerHTML='<h2>Dashboard</h2><div class="notice">No results entered yet.</div>'; return; }
+  const stats=allPlayerNames().map(getPlayerStats).filter(s=>s.games>0);
+  if(!app.chartPlayer||!activePlayers().includes(app.chartPlayer))app.chartPlayer=activePlayers()[0]||'';
 
-    function renderApp() {
-      renderSeasonSwitcher();
-      renderPlayerPicker();
-      renderTabs();
-      renderFixtures();
-      renderDashboard();
-      renderKitty();
-      renderSquad();
-    }
+  const teamW=past.filter(f=>{const l=matchResultLabel(f.id);return l&&l.cls==='win';}).length;
+  const teamL=past.filter(f=>{const l=matchResultLabel(f.id);return l&&l.cls==='loss';}).length;
+  const bestHigh=stats.reduce((m,s)=>s.bestHigh>m.v?{v:s.bestHigh,who:s.name}:m,{v:0,who:''});
+  const bestCO=stats.reduce((m,s)=>s.bestCO>m.v?{v:s.bestCO,who:s.name}:m,{v:0,who:''});
 
-    function renderSeasonSwitcher() {
-      const el = document.getElementById('season-switcher');
-      el.innerHTML = app.seasons.map(s => `
-        <button class="season-btn${s.id === app.currentSeason ? ' active' : ''}${s.locked ? ' locked' : ''}"
-          onclick="switchSeason('${s.id}')">${s.label}${s.locked ? ' 🔒' : ''}</button>
-      `).join('');
-    }
+  let html='<h2>Dashboard</h2>';
+  html+='<div class="stat-cards">'
+    +'<div class="stat-card"><div class="sc-big">'+past.length+'</div><div class="sc-name">Matches</div><div class="sc-lbl">played</div></div>'
+    +'<div class="stat-card"><div class="sc-big" style="color:var(--green)">'+teamW+'</div><div class="sc-name">Wins</div></div>'
+    +'<div class="stat-card"><div class="sc-big" style="color:var(--red)">'+teamL+'</div><div class="sc-name">Losses</div></div>'
+    +(bestHigh.v?'<div class="stat-card"><div class="sc-big" style="color:var(--amber)">'+bestHigh.v+'</div><div class="sc-name">'+bestHigh.who+'</div><div class="sc-lbl">best high</div></div>':'')
+    +(bestCO.v?'<div class="stat-card"><div class="sc-big" style="color:var(--purple)">'+bestCO.v+'</div><div class="sc-name">'+bestCO.who+'</div><div class="sc-lbl">best checkout</div></div>':'')
+    +'</div>';
 
-    async function switchSeason(seasonId) {
-      app.currentSeason = seasonId;
-      await loadSeasonData(seasonId);
-      renderApp();
-    }
+  // progress chart
+  html+='<div class="card"><div class="card-title">Player Progress</div><div class="chart-players">'
+    +activePlayers().map(n=>'<button class="chart-pbtn'+(n===app.chartPlayer?' active':'')+'" onclick="app.chartPlayer=\''+n+'\';renderDashboard()">'+n+'</button>').join('')
+    +'</div><div class="chart-wrap">'+drawChart(app.chartPlayer)+'</div></div>';
 
-    function renderPlayerPicker() {
-      const el = document.getElementById('player-picker');
-      const active = app.players.filter(p => p.status === 'active');
-      el.innerHTML = `<span style="font-size:13px;color:var(--muted);margin-right:8px">You are:</span>` +
-        active.map(p => `
-          <button class="player-chip${p.name === app.currentPlayer ? ' active' : ''}"
-            onclick="setCurrentPlayer('${p.name}')">${p.name}</button>
-        `).join('');
-    }
+  // win %
+  const byWin=[...stats].filter(s=>s.winPct!==null).sort((a,b)=>b.winPct-a.winPct);
+  if(byWin.length){ html+='<div class="card"><div class="card-title">Win Percentage</div>'; byWin.forEach((s,i)=>{ html+='<div class="lb-row"><span class="lb-rank">'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1)+'</span><div class="lb-avatar">'+ini(s.name)+'</div><div class="lb-name">'+s.name+'</div><div class="lb-bar-wrap"><div class="lb-bar-fill" style="width:'+s.winPct+'%"></div></div><div class="lb-val">'+s.winPct+'%</div><div class="lb-sub">'+s.wins+'W/'+(s.games-s.wins)+'L</div></div>'; }); html+='</div>'; }
 
-    function setCurrentPlayer(name) {
-      app.currentPlayer = name;
-      renderPlayerPicker();
-    }
+  // form
+  const withForm=[...stats].filter(s=>s.form.length);
+  if(withForm.length){ html+='<div class="card"><div class="card-title">Form Guide <span style="font-weight:400;color:var(--muted);font-size:11px;letter-spacing:0">(most recent first)</span></div>'; withForm.forEach(s=>{ html+='<div class="lb-row"><div class="lb-avatar">'+ini(s.name)+'</div><div class="lb-name">'+s.name+'</div><div class="form-dots">'+s.form.map(d=>'<span class="form-dot '+d+'">'+d.toUpperCase()+'</span>').join('')+'</div></div>'; }); html+='</div>'; }
 
-    function renderTabs() {
-      const el = document.getElementById('tabs');
-      const tabs = [
-        { name: 'Fixtures', id: 'fixtures' },
-        { name: 'Dashboard', id: 'dashboard' },
-        { name: 'Kitty', id: 'kitty' },
-        { name: 'Squad', id: 'squad' },
-      ];
-      el.innerHTML = tabs.map((t, i) => `
-        <button class="tab${i === 0 ? ' active' : ''}"
-          onclick="switchTab('${t.id}', this)">${t.name}</button>
-      `).join('');
-    }
+  // high scores
+  const byHigh=[...stats].filter(s=>s.bestHigh>0).sort((a,b)=>b.bestHigh-a.bestHigh);
+  if(byHigh.length){ const mx=byHigh[0].bestHigh; html+='<div class="card"><div class="card-title">Best High Score</div>'; byHigh.forEach((s,i)=>{ html+='<div class="lb-row"><span class="lb-rank">'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1)+'</span><div class="lb-avatar">'+ini(s.name)+'</div><div class="lb-name">'+s.name+'</div><div class="lb-bar-wrap"><div class="lb-bar-fill" style="width:'+Math.round(s.bestHigh/mx*100)+'%;background:var(--amber)"></div></div><div class="lb-val" style="color:var(--amber)">'+s.bestHigh+'</div></div>'; }); html+='</div>'; }
 
-    function switchTab(name, el) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      el.classList.add('active');
-      document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
-      document.getElementById(`view-${name}`).classList.remove('hidden');
-    }
+  // checkouts
+  const byCO=[...stats].filter(s=>s.bestCO>0).sort((a,b)=>b.bestCO-a.bestCO);
+  if(byCO.length){ const mx=byCO[0].bestCO; html+='<div class="card"><div class="card-title">Best Checkout</div>'; byCO.forEach((s,i)=>{ html+='<div class="lb-row"><span class="lb-rank">'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1)+'</span><div class="lb-avatar">'+ini(s.name)+'</div><div class="lb-name">'+s.name+'</div><div class="lb-bar-wrap"><div class="lb-bar-fill" style="width:'+Math.round(s.bestCO/mx*100)+'%;background:var(--purple)"></div></div><div class="lb-val" style="color:var(--purple)">'+s.bestCO+'</div></div>'; }); html+='</div>'; }
 
-    function renderFixtures() {
-      const el = document.getElementById('view-fixtures');
-      let html = '<h2>Fixtures</h2>';
-      
-      if (app.treasurerUnlocked && app.currentSeason === '2627') {
-        html += `<div class="card">
-          <div class="card-title">➕ Add Fixture</div>
-          <div class="form-group">
-            <label class="form-label">Date</label>
-            <input class="form-input" type="text" id="new-date" placeholder="Fri 5 Sep 2026">
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Time</label>
-              <input class="form-input" type="text" id="new-time" placeholder="7:30pm">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Opponent</label>
-              <input class="form-input" type="text" id="new-opponent" placeholder="The Crown">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Venue</label>
-              <input class="form-input" type="text" id="new-venue" placeholder="Royal British Legion">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Home / Away</label>
-              <select class="form-select" id="new-home">
-                <option value="true">🏠 Home</option>
-                <option value="false">✈️ Away</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Competition</label>
-            <select class="form-select" id="new-comp">
-              <option>League</option>
-              <option>Cup R1</option>
-              <option>Cup R2</option>
-              <option>Plate P</option>
-              <option>Plate R1</option>
-              <option>Friendly</option>
-            </select>
-          </div>
-          <button class="btn-primary" style="width:100%" onclick="addFixture()">Add Fixture</button>
-        </div>`;
-      }
-      
-      if (!app.fixtures.length) {
-        html += '<div class="notice">No fixtures for this season.</div>';
-        el.innerHTML = html;
-        return;
-      }
-      
-      app.fixtures.forEach(f => {
-        const avail = app.availability[f.id] || {};
-        const yesCount = Object.values(avail).filter(s => s === 'yes').length;
-        html += `
-          <div class="fixture-card">
-            <div class="fixture-info">
-              <div class="fixture-opponent">vs ${f.opponent}</div>
-              <div class="fixture-meta">${f.date} · ${f.time || '7:30pm'} · ${f.venue || 'TBC'} · ${f.home ? '🏠 Home' : '✈️ Away'}</div>
-            </div>
-            <div class="fixture-availability">${yesCount} confirmed</div>
-          </div>
-        `;
-      });
-      el.innerHTML = html;
-    }
+  el.innerHTML=html;
+}
 
-    async function addFixture() {
-      const date = document.getElementById('new-date')?.value;
-      const time = document.getElementById('new-time')?.value;
-      const opponent = document.getElementById('new-opponent')?.value;
-      const venue = document.getElementById('new-venue')?.value;
-      const home = document.getElementById('new-home')?.value === 'true';
-      const comp = document.getElementById('new-comp')?.value;
-      
-      if (!date || !opponent || !venue) {
-        alert('Please fill in date, opponent, and venue');
-        return;
-      }
-      
-      try {
-        const newFixture = {
-          season_id: app.currentSeason,
-          opponent,
-          date,
-          time: time || '7:30pm',
-          home,
-          comp: comp || 'League',
-          venue,
-        };
-        
-        await apiCall('fixtures', 'POST', '', newFixture);
-        
-        document.getElementById('new-date').value = '';
-        document.getElementById('new-time').value = '';
-        document.getElementById('new-opponent').value = '';
-        document.getElementById('new-venue').value = '';
-        
-        await loadSeasonData(app.currentSeason);
-        renderFixtures();
-        alert('✓ Fixture added!');
-      } catch (error) {
-        alert('Error adding fixture: ' + error.message);
-      }
-    }
+function drawChart(name){
+  const tl=[]; pastFixtures().forEach(f=>{ const st=app.results[f.id].stats[name]; if(!st)return; const played=getPlayersWhoPlayed(f.id).includes(name); if(!played&&!st.high)return; const sg=app.results[f.id].singles.find(g=>g.player===name&&g.score); const won=sg?isWin(sg.score):null; const parts=f.date.split(' '); tl.push({label:parts[2]+' '+parts[3].slice(2),high:+st.high||0,co:+st.checkout||0,won}); });
+  if(!tl.length)return '<p style="color:var(--muted);font-size:13px">No data for '+name+' yet.</p>';
+  const W=560,H=190,P={t:14,r:14,b:42,l:38},iW=W-P.l-P.r,iH=H-P.t-P.b,n=tl.length,xs=n>1?iW/(n-1):iW/2;
+  const mx=Math.max(60,...tl.map(d=>d.high),...tl.map(d=>d.co));
+  const xp=i=>P.l+(n>1?i*xs:iW/2), yp=v=>P.t+iH-(v/mx)*iH;
+  let g='';[0,60,100,140,180].forEach(v=>{if(v>mx*1.1)return;const y=yp(v);g+='<line x1="'+P.l+'" y1="'+y+'" x2="'+(W-P.r)+'" y2="'+y+'" stroke="#2a3030"/><text x="'+(P.l-5)+'" y="'+(y+3)+'" text-anchor="end" font-size="9" fill="#7a9090">'+v+'</text>';});
+  const hp=tl.map((d,i)=>d.high>0?[xp(i),yp(d.high)]:null).filter(Boolean);
+  const cp=tl.map((d,i)=>d.co>0?[xp(i),yp(d.co)]:null).filter(Boolean);
+  let paths='';
+  if(hp.length>1)paths+='<polyline points="'+hp.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="#ffab00" stroke-width="2"/>';
+  if(cp.length>1)paths+='<polyline points="'+cp.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="#b388ff" stroke-width="2" stroke-dasharray="5,3"/>';
+  let dots='';tl.forEach((d,i)=>{if(d.high>0)dots+='<circle cx="'+xp(i)+'" cy="'+yp(d.high)+'" r="3.5" fill="#ffab00"/>';if(d.co>0)dots+='<circle cx="'+xp(i)+'" cy="'+yp(d.co)+'" r="3" fill="#b388ff"/>';});
+  let wl='';tl.forEach((d,i)=>{if(d.won===null)return;wl+='<circle cx="'+xp(i)+'" cy="'+(H-P.b+20)+'" r="5" fill="'+(d.won?'#00e676':'#ff3d57')+'"/><text x="'+xp(i)+'" y="'+(H-P.b+23)+'" text-anchor="middle" font-size="7" fill="#0d0f0f" font-weight="bold">'+(d.won?'W':'L')+'</text>';});
+  let xl='';tl.forEach((d,i)=>{if(n>10&&i%2)return;xl+='<text x="'+xp(i)+'" y="'+(H-P.b+11)+'" text-anchor="middle" font-size="8" fill="#7a9090">'+d.label+'</text>';});
+  const leg='<g transform="translate('+P.l+','+(H-4)+')"><circle cx="0" cy="0" r="4" fill="#ffab00"/><text x="7" y="3" font-size="9" fill="#7a9090">High</text><circle cx="50" cy="0" r="4" fill="#b388ff"/><text x="57" y="3" font-size="9" fill="#7a9090">Checkout</text></g>';
+  return '<svg viewBox="0 0 '+W+' '+(H+12)+'" style="width:100%;max-width:'+W+'px">'+g+paths+dots+wl+xl+leg+'</svg>';
+}
 
-    function renderDashboard() {
-      const el = document.getElementById('view-dashboard');
-      let html = '<h2>Dashboard</h2>';
-      const played = app.fixtures.filter(f => app.results[f.id] && app.results[f.id].singles.length > 0);
-      
-      if (!played.length) {
-        html += '<div class="notice">No results entered yet.</div>';
-      } else {
-        html += `<div class="card">
-          <div class="card-title">Season Overview</div>
-          <div style="font-size:14px;">
-            <strong>${played.length}</strong> matches played<br>
-            <span style="color:var(--muted);font-size:12px;">Season ${app.currentSeason}</span>
-          </div>
-        </div>`;
-      }
-      el.innerHTML = html;
-    }
+// ═══════════════════════════════════════════════════════════
+// KITTY
+// ═══════════════════════════════════════════════════════════
+function renderKitty(){
+  const el=document.getElementById('view-kitty');
+  let html='<h2>💰 Kitty</h2>';
 
-    function renderKitty() {
-      const el = document.getElementById('view-kitty');
-      let html = '<h2>💰 Kitty & Payments</h2>';
-      
-      if (!app.treasurerUnlocked) {
-        html += `<div class="unlock-form">
-          <div class="form-group">
-            <label class="form-label">Treasurer PIN</label>
-            <input class="form-input" type="password" id="pin-input" placeholder="••••">
-          </div>
-          <button class="btn-primary" style="width:100%" onclick="unlockTreasurer()">Unlock Treasurer Mode</button>
-        </div>`;
-      } else {
-        html += `<div class="treasurer-badge">🔓 Treasurer Mode Active</div>`;
-        html += '<div class="notice">Kitty data will show once payment data is added.</div>';
-      }
-      el.innerHTML = html;
-    }
+  // personal balance
+  if(app.currentPlayer){
+    const b=getPlayerBalance(app.currentPlayer);
+    const cls=b.balance>0.005?'credit':b.balance<-0.005?'debt':'square';
+    const bal=b.balance>0.005?'+£'+b.balance.toFixed(2):b.balance<-0.005?'-£'+Math.abs(b.balance).toFixed(2):'£0.00';
+    const lbl=b.balance>0.005?'In credit':b.balance<-0.005?'Owes to kitty':'All square';
+    html+='<div class="balance-card '+cls+'"><div class="bc-avatar">'+ini(app.currentPlayer)+'</div><div><div class="bc-name">'+app.currentPlayer+'</div><div class="bc-bal">'+bal+'</div><div class="bc-lbl">'+lbl+'</div><div class="bc-detail">Paid in £'+b.paid.toFixed(2)+' · Charged £'+b.owed.toFixed(2)+'</div></div></div>';
+  }
 
-    function unlockTreasurer() {
-      const pin = document.getElementById('pin-input').value;
-      if (pin === TREASURER_PIN) {
-        app.treasurerUnlocked = true;
-        renderKitty();
-        renderFixtures();
-      } else {
-        alert('Incorrect PIN');
-      }
-    }
+  if(!app.treasurerUnlocked){
+    html+='<div class="unlock-form card"><div class="form-group"><label class="form-label">Treasurer PIN</label><input class="form-input" type="password" id="pin-kitty" placeholder="••••"></div><button class="btn-primary" style="width:100%" onclick="tryUnlock(\'pin-kitty\')">Unlock to manage payments</button></div>';
+    // still show read-only balances
+    html+=balancesTable(false);
+    el.innerHTML=html; return;
+  }
+  html+='<div class="t-active-badge">🔓 Treasurer Mode</div>';
+  html+=balancesTable(true);
+  el.innerHTML=html;
+}
+function balancesTable(editable){
+  let html='<div class="card"><div class="card-title">Player Balances</div>';
+  activePlayers().forEach(n=>{
+    const b=getPlayerBalance(n);
+    const col=b.balance>0.005?'var(--green)':b.balance<-0.005?'var(--red)':'var(--muted)';
+    const bal=b.balance>0.005?'+£'+b.balance.toFixed(2):b.balance<-0.005?'-£'+Math.abs(b.balance).toFixed(2):'£0.00';
+    html+='<div class="bal-table-row"><div class="sq-avatar">'+ini(n)+'</div><div style="flex:1"><div style="font-weight:600;font-size:13px">'+n+'</div>';
+    const log=app.payments[n]||[];
+    if(log.length){ html+='<div class="pay-log">'+log.slice(-4).map(p=>{const a=parseFloat(p.amount);return '<div class="pay-log-item"><span class="pl-date">'+(p.date||'')+'</span><span class="pl-note">'+(p.note||'')+'</span><span class="pl-amt '+(a>=0?'pos':'neg')+'">'+(a>=0?'+£'+a.toFixed(2):'-£'+Math.abs(a).toFixed(2))+'</span></div>';}).join('')+'</div>'; }
+    html+='</div><div style="text-align:right"><div style="font-weight:700;color:'+col+'">'+bal+'</div>';
+    if(editable&&!isLocked()){ html+='<div class="qp-btns" style="margin-top:5px"><button class="qp-btn" onclick="logPayment(\''+n+'\',5)">£5</button><button class="qp-btn" onclick="logPayment(\''+n+'\',10)">£10</button><button class="qp-btn" onclick="logPayment(\''+n+'\',20)">£20</button><button class="qp-btn" onclick="customPayment(\''+n+'\')">＋</button></div>'; }
+    html+='</div></div>';
+  });
+  html+='</div>';
+  return html;
+}
+async function logPayment(name,amount){
+  if(isLocked()){ toast('Season locked'); return; }
+  try{ await api('payments','POST','',{season_id:app.currentSeason,player_id:pid(name),amount,note:'Payment',date:todayStr(),type:'payment'}); await loadSeason(app.currentSeason); renderKitty(); toast('£'+amount+' logged for '+name); }
+  catch(e){ toast('Failed'); }
+}
+async function customPayment(name){
+  const v=prompt('Amount for '+name+' (use negative for a charge):'); if(v===null)return;
+  const amt=parseFloat(v); if(isNaN(amt)){ toast('Invalid'); return; }
+  const note=prompt('Note (optional):')||'Manual entry';
+  try{ await api('payments','POST','',{season_id:app.currentSeason,player_id:pid(name),amount:amt,note,date:todayStr(),type:amt>=0?'payment':'charge'}); await loadSeason(app.currentSeason); renderKitty(); toast('Logged'); }
+  catch(e){ toast('Failed'); }
+}
 
-    function renderSquad() {
-      const el = document.getElementById('view-squad');
-      let html = '<h2>Squad</h2>';
-      
-      if (!app.players.length) {
-        html += '<div class="notice">Loading players...</div>';
-      } else {
-        const active = app.players.filter(p => p.status === 'active');
-        html += '<div class="card"><div class="card-title">Active Squad (' + active.length + ' players)</div>';
-        active.forEach(p => {
-          html += `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
-            <div style="font-weight:700;">${p.name}</div>
-            <div style="font-size:12px;color:var(--muted);">${p.email || '—'}</div>
-          </div>`;
-        });
-        html += '</div>';
-      }
-      
-      el.innerHTML = html;
-    }
+// ═══════════════════════════════════════════════════════════
+// SQUAD
+// ═══════════════════════════════════════════════════════════
+function renderSquad(){
+  const el=document.getElementById('view-squad');
+  let html='<h2>Squad</h2>';
+  const emails=app.players.filter(p=>p.status==='active'&&p.email).map(p=>p.email).join(', ');
+  html+='<div class="email-strip"><div class="card-title">📧 Team Email Addresses</div>'+(emails?'<div style="display:flex;gap:10px;align-items:flex-start"><div style="flex:1;font-size:12px;font-family:monospace;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;word-break:break-all">'+emails+'</div><button class="btn btn-sm" onclick="copyEmails()">📋 Copy all</button></div>':'<p style="font-size:12px;color:var(--muted)">No emails yet.</p>')+'</div>';
 
-    window.addEventListener('DOMContentLoaded', loadAllData);
-  </script>
+  const active=app.players.filter(p=>p.status==='active');
+  html+='<div class="card"><div class="card-title">Active Squad ('+active.length+')</div>';
+  active.forEach(p=>{
+    const s=getPlayerStats(p.name);
+    html+='<div class="squad-row"><div class="sq-avatar">'+ini(p.name)+'</div><div class="sq-info"><div class="sq-name">'+p.name+(p.name==='Hayden'?'<span class="t-badge">TREASURER</span>':'')+'</div><div class="sq-meta">'+s.games+' games'+(s.winPct!==null?' · '+s.winPct+'% win':'')+'</div>';
+    if(app.treasurerUnlocked){ html+='<input class="form-input" style="margin-top:6px;max-width:240px" type="email" value="'+(p.email||'')+'" placeholder="email@example.com" onblur="saveEmail(\''+p.id+'\',this.value)">'; }
+    else if(p.email){ html+='<div class="sq-meta">📧 '+p.email+'</div>'; }
+    html+='</div>';
+    if(app.treasurerUnlocked&&p.name!=='Hayden'){ html+='<button class="btn btn-sm" onclick="markLeft(\''+p.id+'\')">Mark left</button>'; }
+    html+='</div>';
+  });
+  html+='</div>';
+
+  const inactive=app.players.filter(p=>p.status==='inactive');
+  if(inactive.length){
+    html+='<div class="card"><div class="card-title">Former Players</div>';
+    inactive.forEach(p=>{ html+='<div class="squad-row" style="opacity:.6"><div class="sq-avatar">'+ini(p.name)+'</div><div class="sq-info"><div class="sq-name">'+p.name+' <span class="inactive-tag">LEFT</span></div></div>'+(app.treasurerUnlocked?'<button class="btn btn-sm" onclick="reactivate(\''+p.id+'\')">Reactivate</button>':'')+'</div>'; });
+    html+='</div>';
+  }
+
+  if(app.treasurerUnlocked){
+    html+='<div class="card"><div class="card-title">➕ Add Player</div><div style="display:flex;gap:8px"><input class="form-input" id="new-player" placeholder="Name"><button class="btn-primary" onclick="addPlayer()">Add</button></div></div>';
+  }
+  el.innerHTML=html;
+}
+function copyEmails(){ const e=app.players.filter(p=>p.status==='active'&&p.email).map(p=>p.email).join(', '); navigator.clipboard.writeText(e); toast('Emails copied ✓'); }
+async function saveEmail(id,email){ try{ await api('players','PATCH','?id=eq.'+id,{email:email.trim()}); const p=app.players.find(x=>x.id===id); if(p)p.email=email.trim(); renderSquad(); toast('Email saved ✓'); }catch(e){ toast('Failed'); } }
+async function markLeft(id){ if(!confirm('Mark this player as left the team?'))return; try{ await api('players','PATCH','?id=eq.'+id,{status:'inactive'}); const p=app.players.find(x=>x.id===id); if(p)p.status='inactive'; renderAll(); toast('Player marked as left'); }catch(e){ toast('Failed'); } }
+async function reactivate(id){ try{ await api('players','PATCH','?id=eq.'+id,{status:'active'}); const p=app.players.find(x=>x.id===id); if(p)p.status='active'; renderAll(); toast('Reactivated'); }catch(e){ toast('Failed'); } }
+async function addPlayer(){ const name=document.getElementById('new-player').value.trim(); if(!name){ toast('Enter a name'); return; } const id=name.toLowerCase().replace(/[^a-z0-9]/g,''); try{ await api('players','POST','',{id,name,status:'active',email:''}); app.players.push({id,name,status:'active',email:''}); renderAll(); toast(name+' added ✓'); }catch(e){ toast('Failed: '+e.message); } }
+
+// ═══════════════════════════════════════════════════════════
+// UNLOCK
+// ═══════════════════════════════════════════════════════════
+function tryUnlock(inputId){
+  const v=document.getElementById(inputId).value;
+  if(v===TREASURER_PIN){ app.treasurerUnlocked=true; renderAll(); showTab(app.activeTab); toast('Treasurer unlocked 🔓'); }
+  else toast('Incorrect PIN');
+}
+
+// ═══════════════════════════════════════════════════════════
+// DEEP LINK (availability response from email)
+// ═══════════════════════════════════════════════════════════
+function handleDeepLink(){
+  const p=new URLSearchParams(location.search);
+  const player=p.get('player'); const fixtures=p.get('fixtures');
+  if(player&&activePlayers().includes(player)){ app.currentPlayer=player; }
+  if(player&&fixtures){ const ids=fixtures.split(',').map(Number); if(ids.length){ expandedFix=ids[0]; app.activeTab='fixtures'; } }
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',async()=>{
+  await loadAll();
+  handleDeepLink();
+  showTab(app.activeTab);
+  renderAll();
+});
+
+</script>
 </body>
 </html>
